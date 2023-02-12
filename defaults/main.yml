@@ -2,4 +2,16 @@
 # defaults file for pve_pve_nvidia_passthrough
 pve_nvidia_passthrough_driver_version: ""
 
+pve_nvidia_passthrough_driver_host_install_opts: --dkms -s
+
+pve_nvidia_passthrough_driver_guest_install_opts: --no-kernel-module -s
+
 pve_nvidia_passthrough_initramfs_update_options: -k all -u
+
+pve_nvidia_passthrough_install_mode: host
+
+pve_nvidia_passthrough_libnvidia_repo_url: "https://nvidia.github.io/libnvidia-container"
+
+pve_nvidia_passthrough_libnvidia_apt_repository: "deb {{ pve_nvidia_passthrough_libnvidia_repo_url }}/stable/ubuntu18.04/$(ARCH) /"
+
+pve_nvidia_passthrough_libnvidia_apt_gpg_key: "{{ pve_nvidia_passthrough_libnvidia_repo_url }}/gpgkey"

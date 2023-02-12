@@ -1,0 +1,64 @@
+---
+- name: Create temporary download directory for nvidia drivers
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: nvidia_drivers
+  register: tempfile
+  changed_when: false
+
+- name: Download drivers NVIDIA-Linux-x86_64-{{ pve_nvidia_passthrough_driver_version }}
+  ansible.builtin.get_url:
+    url: https://us.download.nvidia.com/XFree86/Linux-x86_64/{{ pve_nvidia_passthrough_driver_version }}/NVIDIA-Linux-x86_64-{{ pve_nvidia_passthrough_driver_version }}.run
+    dest: "{{ tempfile.path }}/NVIDIA-Linux-x86_64-{{ pve_nvidia_passthrough_driver_version }}.run"
+    mode: "0775"
+  changed_when: false
+
+- name: Install nvidia drivers {{ pve_nvidia_passthrough_driver_version }}
+  ansible.builtin.command: "{{ tempfile.path }}/NVIDIA-Linux-x86_64-{{ pve_nvidia_passthrough_driver_version }}.run {{ pve_nvidia_passthrough_driver_guest_install_opts }}"
+  args:
+    creates: /usr/lib/firmware/nvidia/{{ pve_nvidia_passthrough_driver_version }}
+  notify:
+    - Reboot to load drivers
+
+- name: Add libnvidia-container apt key
+  ansible.builtin.get_url:
+    url: "{{ pve_nvidia_passthrough_libnvidia_apt_gpg_key }}"
+    dest: /etc/apt/trusted.gpg.d/nvidia-docker.asc
+    mode: '0644'
+    force: true
+
+- name: Add libnvidia-container repository
+  apt_repository:
+    repo: "{{ pve_nvidia_passthrough_libnvidia_apt_repository }}"
+    state: present
+    filename: nvidia-container-toolkit
+    update_cache: true
+
+- name: Install nvidia-container-toolkit package
+  ansible.builtin.package:
+    name: nvidia-container-toolkit
+    state: present
+
+- name: Add the no-cgroups option for unprivileged containers
+  ansible.builtin.lineinfile:
+    path: /etc/nvidia-container-runtime/config.toml
+    regexp: "^#no-cgroups = false"
+    line: "no-cgroups = true"
+
+- name: Check if /etc/docker/daemon.json exists
+  ansible.builtin.stat:
+    path: /etc/docker/daemon.json
+  register: docker_daemon
+  changed_when: false
+
+- name: Check /etc/docker/daemon.json runtime config
+  ansible.builtin.command: cat /etc/docker/daemon.json
+  register: docker_daemon_config
+  when: docker_daemon.stat.exists
+  changed_when: false
+
+- name: Install nvidia drivers {{ pve_nvidia_passthrough_driver_version }}
+  ansible.builtin.command: "nvidia-ctk runtime configure --runtime=docker"
+  when: not docker_daemon.stat.exists or not 'nvidia-container-runtime' in docker_daemon_config.stdout
+  notify:
+    - Restart docker service

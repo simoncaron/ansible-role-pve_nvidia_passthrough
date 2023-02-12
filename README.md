@@ -26,10 +26,16 @@ The value `pve_nvidia_passthrough_driver_version` is required and should contain
 
 The key `pve_nvidia_passthrough_initramfs_update_options` allows to configure the options of the initramfs command when modules are added.
 
+By default, the role installs/configures the driver for the Proxmox Host. To configure the driver for an LXC guest, the key `pve_nvidia_passthrough_install_mode` should be set to `guest`.
+
 Dependencies
 ------------
 
-None.
+Before running the role on LXC guests, you will need to set the appropriate lxc flags in your container .conf file.
+
+See these resources for additional information:
+- https://jocke.no/2022/02/23/plex-gpu-transcoding-in-docker-on-lxc-on-proxmox/
+- https://theorangeone.net/posts/lxc-nvidia-gpu-passthrough/
 
 Example Playbook
 ----------------

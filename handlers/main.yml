@@ -4,3 +4,8 @@
 
 - name: Reboot to load drivers
   ansible.builtin.reboot:
+
+- name: Restart docker service
+  ansible.builtin.service:
+    name: docker
+    state: restarted

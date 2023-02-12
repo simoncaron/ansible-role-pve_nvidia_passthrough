@@ -1,0 +1,88 @@
+---
+- name: Install kernel headers
+  ansible.builtin.package:
+    name: pve-headers
+    state: present
+
+- name: Create temporary download directory for nvidia drivers
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: nvidia_drivers
+  register: tempfile
+  changed_when: false
+
+- name: Download drivers NVIDIA-Linux-x86_64-{{ pve_nvidia_passthrough_driver_version }}
+  ansible.builtin.get_url:
+    url: https://us.download.nvidia.com/XFree86/Linux-x86_64/{{ pve_nvidia_passthrough_driver_version }}/NVIDIA-Linux-x86_64-{{ pve_nvidia_passthrough_driver_version }}.run
+    dest: "{{ tempfile.path }}/NVIDIA-Linux-x86_64-{{ pve_nvidia_passthrough_driver_version }}.run"
+    mode: "0775"
+  changed_when: false
+
+- name: Install nvidia drivers {{ pve_nvidia_passthrough_driver_version }}
+  ansible.builtin.command: "{{ tempfile.path }}/NVIDIA-Linux-x86_64-{{ pve_nvidia_passthrough_driver_version }}.run {{ pve_nvidia_passthrough_driver_host_install_opts }}"
+  args:
+    creates: /usr/lib/firmware/nvidia/{{ pve_nvidia_passthrough_driver_version }}
+  notify:
+    - Rebuild initramfs
+    - Reboot to load drivers
+
+- name: Add nvidia modules to modules.conf
+  ansible.builtin.blockinfile:
+    path: /etc/modules-load.d/modules.conf
+    block: |
+      # Nvidia modules
+      nvidia-drm
+      nvidia-uvm
+  notify:
+    - Rebuild initramfs
+    - Reboot to load drivers
+
+- name: Blacklist nouveau driver
+  ansible.builtin.copy:
+    src: blacklist-nouveau.conf
+    dest: /etc/modprobe.d/blacklist-nouveau.conf
+    mode: "0644"
+  notify:
+    - Rebuild initramfs
+    - Reboot to load drivers
+
+- name: Copy udev rule file
+  ansible.builtin.copy:
+    src: 70-nvidia.rules
+    dest: /etc/udev/rules.d/70-nvidia.rules
+    mode: "0644"
+  notify:
+    - Rebuild initramfs
+    - Reboot to load drivers
+
+- name: Populate service facts
+  ansible.builtin.service_facts:
+
+- name: Install nvidia-persistenced
+  block:
+    - name: Copy nvidia-persistenced installer package
+      ansible.builtin.copy:
+        src: /usr/share/doc/NVIDIA_GLX-1.0/samples/nvidia-persistenced-init.tar.bz2
+        dest: "{{ tempfile.path }}/nvidia-persistenced-init.tar.bz2"
+        mode: "0444"
+        remote_src: true
+      changed_when: false
+
+    - name: Copy and prepare install script
+      ansible.builtin.command: "{{ item }}"
+      args:
+        chdir: "{{ tempfile.path }}"
+      with_items:
+        - bunzip2 nvidia-persistenced-init.tar.bz2
+        - tar -xf nvidia-persistenced-init.tar
+        - chmod +x nvidia-persistenced-init/install.sh
+      changed_when: false
+
+    - name: Run nvidia-persistenced-init/install.sh
+      ansible.builtin.command: "{{ tempfile.path }}/nvidia-persistenced-init/install.sh"
+      args:
+        creates: /lib/systemd/system/nvidia-persistenced.service
+
+  when: "'nvidia-persistenced.service' not in services"
+  notify:
+    - Reboot to load drivers
