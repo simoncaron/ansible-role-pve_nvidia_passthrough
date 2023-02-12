@@ -1,0 +1,47 @@
+---
+- name: Install kernel headers
+  ansible.builtin.package:
+    name: pve-headers
+    state: present
+
+- name: Create temporary download directory for nvidia drivers
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: nvidia_drivers
+  register: tempfile
+  changed_when: false
+
+- name: Download drivers NVIDIA-Linux-x86_64-{{ pve_nvidia_passthrough_driver_version }}
+  ansible.builtin.get_url:
+    url: https://us.download.nvidia.com/XFree86/Linux-x86_64/{{ pve_nvidia_passthrough_driver_version }}/NVIDIA-Linux-x86_64-{{ pve_nvidia_passthrough_driver_version }}.run
+    dest: "{{ tempfile.path }}/NVIDIA-Linux-x86_64-{{ pve_nvidia_passthrough_driver_version }}.run"
+    mode: "0775"
+  changed_when: false
+
+- name: Install nvidia drivers {{ pve_nvidia_passthrough_driver_version }}
+  ansible.builtin.command: "{{ tempfile.path }}/NVIDIA-Linux-x86_64-{{ pve_nvidia_passthrough_driver_version }}.run  --dkms -s"
+  args:
+    creates: /usr/lib/firmware/nvidia/{{ pve_nvidia_passthrough_driver_version }}
+  notify:
+    - Rebuild initramfs
+    - Reboot to load drivers
+
+- name: Add nvidia modules to modules.conf
+  ansible.builtin.blockinfile:
+    path: /etc/modules-load.d/modules.conf
+    block: |
+      # Nvidia modules
+      nvidia
+      nvidia_uvm
+  notify:
+    - Rebuild initramfs
+    - Reboot to load drivers
+
+- name: Copy udev rule file
+  ansible.builtin.copy:
+    src: 70-nvidia.rules
+    dest: /etc/udev/rules.d/70-nvidia.rules
+    mode: "0644"
+  notify:
+    - Rebuild initramfs
+    - Reboot to load drivers

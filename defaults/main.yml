@@ -1,0 +1,5 @@
+---
+# defaults file for pve_pve_nvidia_passthrough
+pve_nvidia_passthrough_driver_version: ""
+
+pve_nvidia_passthrough_initramfs_update_options: -k all -u

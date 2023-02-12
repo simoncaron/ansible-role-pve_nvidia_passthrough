@@ -1,0 +1,21 @@
+---
+dependencies: []
+
+galaxy_info:
+  role_name: pve_nvidia_passthrough
+  author: simoncaron
+  description: A role to configure nvidia GPUs passthrough on Proxmox VE 7.x
+  issue_tracker_url: https://github.com/simoncaron/ansible-role-pve_nvidia_passthrough/issues
+  license: MIT
+  min_ansible_version: "2.4"
+  platforms:
+    - name: Debian
+      versions:
+        - bullseye
+
+  galaxy_tags:
+    - pve
+    - proxmox
+    - nvidia
+    - gpu
+    - passthrough
