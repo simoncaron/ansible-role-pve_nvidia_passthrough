@@ -28,7 +28,7 @@
     force: true
 
 - name: Add libnvidia-container repository
-  apt_repository:
+  ansible.builtin.apt_repository:
     repo: "{{ pve_nvidia_passthrough_libnvidia_apt_repository }}"
     state: present
     filename: nvidia-container-toolkit
