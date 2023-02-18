@@ -60,5 +60,6 @@
 - name: Install nvidia drivers {{ pve_nvidia_passthrough_driver_version }}
   ansible.builtin.command: "nvidia-ctk runtime configure --runtime=docker"
   when: not docker_daemon.stat.exists or not 'nvidia-container-runtime' in docker_daemon_config.stdout
+  changed_when: false
   notify:
     - Restart docker service
