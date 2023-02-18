@@ -7,7 +7,7 @@ Ansible Role: Proxmox VE NVIDIA Passthrough Config
 
 An Ansible Role that configures NVIDIA drivers on Proxmox VE 7.x for passthrough to VMs and LXCs.
 
-This role was tested on Proxmox VE 7.3.
+This role was tested on Proxmox VE 7.3, on LXC containers based on Ubuntu 22.04 template.
 
 Requirements
 ------------
@@ -32,6 +32,30 @@ Dependencies
 ------------
 
 Before running the role on LXC guests, you will need to set the appropriate lxc flags in your container .conf file.
+
+Example, for the following entries in `/dev`:
+```
+root@pve01:/etc/pve/lxc# ls -l /dev/nvidia*
+crw-rw-rw- 1 root root 195,   0 Feb 13 21:15 /dev/nvidia0
+crw-rw-rw- 1 root root 195, 255 Feb 13 21:15 /dev/nvidiactl
+crw-rw-rw- 1 root root 195, 254 Feb 13 21:15 /dev/nvidia-modeset
+crw-rw-rw- 1 root root 511,   0 Feb 13 21:15 /dev/nvidia-uvm
+crw-rw-rw- 1 root root 511,   1 Feb 13 21:15 /dev/nvidia-uvm-tools
+```
+
+You must add the following lines to the LXC guest .conf file (in /etc/pve/lxc/<id>.conf)
+```
+lxc.cgroup2.devices.allow: c 195:* rwm
+lxc.cgroup2.devices.allow: c 508:* rwm
+lxc.mount.entry: /dev/nvidia0 dev/nvidia0 none bind,optional,create=file
+lxc.mount.entry: /dev/nvidiactl dev/nvidiactl none bind,optional,create=file
+lxc.mount.entry: /dev/nvidia-uvm dev/nvidia-uvm none bind,optional,create=file
+lxc.mount.entry: /dev/nvidia-uvm-tools dev/nvidia-uvm-tools none bind,optional,create=file
+lxc.mount.entry: dev/nvidia-modeset dev/nvidia-modeset none bind,optional,create=file
+lxc.mount.entry: /dev/nvidia-modeset dev/nvidia-modeset none bind,optional,create=file
+```
+
+After the lines are added, you must reboot the LXC. You can run this role with `pve_nvidia_passthrough_install_mode` set to `guest` to configure the guest.
 
 See these resources for additional information:
 - https://jocke.no/2022/02/23/plex-gpu-transcoding-in-docker-on-lxc-on-proxmox/
