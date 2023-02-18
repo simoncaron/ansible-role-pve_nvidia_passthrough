@@ -59,6 +59,9 @@
   ansible.builtin.service_facts:
 
 - name: Install nvidia-persistenced
+  when: "'nvidia-persistenced.service' not in services"
+  notify:
+    - Reboot to load drivers
   block:
     - name: Copy nvidia-persistenced installer package
       ansible.builtin.copy:
@@ -82,7 +85,3 @@
       ansible.builtin.command: "{{ tempfile.path }}/nvidia-persistenced-init/install.sh"
       args:
         creates: /lib/systemd/system/nvidia-persistenced.service
-
-  when: "'nvidia-persistenced.service' not in services"
-  notify:
-    - Reboot to load drivers
