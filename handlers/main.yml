@@ -1,6 +1,7 @@
 ---
 - name: Rebuild initramfs
   ansible.builtin.command: update-initramfs -u {{ pve_nvidia_passthrough_initramfs_update_options }}
+  changed_when: false
 
 - name: Reboot to load drivers
   ansible.builtin.reboot:
