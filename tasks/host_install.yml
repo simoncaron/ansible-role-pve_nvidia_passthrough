@@ -1,4 +1,16 @@
 ---
+- name: Blacklist nouveau driver
+  ansible.builtin.copy:
+    src: blacklist-nouveau.conf
+    dest: /etc/modprobe.d/blacklist-nouveau.conf
+    mode: "0644"
+  notify:
+    - Rebuild initramfs
+    - Reboot to load drivers
+
+- name: Force unloading of nouveau driver
+  ansible.builtin.meta: flush_handlers
+
 - name: Install kernel headers
   ansible.builtin.package:
     name: pve-headers
@@ -33,15 +45,6 @@
       # Nvidia modules
       nvidia-drm
       nvidia-uvm
-  notify:
-    - Rebuild initramfs
-    - Reboot to load drivers
-
-- name: Blacklist nouveau driver
-  ansible.builtin.copy:
-    src: blacklist-nouveau.conf
-    dest: /etc/modprobe.d/blacklist-nouveau.conf
-    mode: "0644"
   notify:
     - Rebuild initramfs
     - Reboot to load drivers
