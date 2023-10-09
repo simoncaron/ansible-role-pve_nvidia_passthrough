@@ -10,7 +10,7 @@ pve_nvidia_passthrough_initramfs_update_options: -k all -u
 
 pve_nvidia_passthrough_install_mode: host
 
-pve_nvidia_passthrough_container_runtime_setup: false
+pve_nvidia_passthrough_container_runtime_setup: true
 
 pve_nvidia_passthrough_libnvidia_repo_url: "https://nvidia.github.io/libnvidia-container"
 
