@@ -2,8 +2,8 @@ Ansible Role: Proxmox VE NVIDIA Passthrough Config
 =========
 
 ![Ansible Lint](https://github.com/simoncaron/ansible-role-pve_nvidia_passthrough/actions/workflows/lint.yml/badge.svg)
-[![Ansible Role](https://img.shields.io/ansible/role/61478.svg)](https://galaxy.ansible.com/simoncaron/pve_nvidia_passthrough)
-[![Ansible Role Downloads](https://img.shields.io/ansible/role/d/61478.svg)](https://galaxy.ansible.com/simoncaron/pve_nvidia_passthrough)
+[![Ansible Role](https://img.shields.io/ansible/role/61478.svg)](https://galaxy.ansible.com/ui/standalone/roles/simoncaron/pve_nvidia_passthrough/)
+[![Ansible Role Downloads](https://img.shields.io/ansible/role/d/61478.svg)](https://galaxy.ansible.com/ui/standalone/roles/simoncaron/pve_nvidia_passthrough/)
 
 An Ansible Role that configures NVIDIA drivers on Proxmox VE 7.x for passthrough to VMs and LXCs.
 
