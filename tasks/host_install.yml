@@ -16,6 +16,11 @@
     name: pve-headers
     state: present
 
+- name: Install nvidia-driver dependencies
+  ansible.builtin.package:
+    name: build-essential
+    state: present
+
 - name: Create temporary download directory for nvidia drivers
   ansible.builtin.tempfile:
     state: directory
