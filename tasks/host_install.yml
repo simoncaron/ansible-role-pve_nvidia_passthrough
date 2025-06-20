@@ -11,10 +11,13 @@
 - name: Force unloading of nouveau driver
   ansible.builtin.meta: flush_handlers
 
-- name: Install kernel headers
+- name: Install kernel headers and dkms
   ansible.builtin.package:
-    name: pve-headers
+    name: "{{ item }}"
     state: present
+  with_items:
+    - pve-headers
+    - dkms
 
 - name: Install nvidia-driver dependencies
   ansible.builtin.package:
