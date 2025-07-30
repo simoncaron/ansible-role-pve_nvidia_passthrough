@@ -1,10 +1,10 @@
 ---
 # defaults file for pve_pve_nvidia_passthrough
-pve_nvidia_passthrough_driver_version: ""
+pve_nvidia_passthrough_driver_version: "570.172.08"
 
 pve_nvidia_passthrough_driver_host_install_opts: --dkms -s
 
-pve_nvidia_passthrough_driver_guest_install_opts: --no-kernel-module -s
+pve_nvidia_passthrough_driver_guest_install_opts: --no-kernel-module -s --allow-installation-with-running-driver
 
 pve_nvidia_passthrough_initramfs_update_options: -k all -u
 
