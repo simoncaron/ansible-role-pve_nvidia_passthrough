@@ -54,7 +54,7 @@ lxc.hook.mount: /usr/share/lxc/hooks/nvidia
 
 This method automatically injects the NVIDIA devices and drivers into the container at mount time using the NVIDIA Container Toolkit hook. The environment variables configure which GPUs are visible (`all` or specific GPU IDs) and what capabilities are enabled (compute, utility, video, graphics, etc.).
 
-### Option 2: Manual Device Passthrough
+### Option 2: Manual Device Passthrough (no longer recommended)
 
 Alternatively, you can manually bind mount the NVIDIA devices. First, check the device entries on your host:
 
