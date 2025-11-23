@@ -39,7 +39,7 @@
   changed_when: false
 
 - name: Install nvidia drivers {{ pve_nvidia_passthrough_driver_version }}
-  ansible.builtin.command: "{{ tempfile.path }}/NVIDIA-Linux-x86_64-{{ pve_nvidia_passthrough_driver_version }}.run {{ pve_nvidia_passthrough_driver_host_install_opts }}"
+  ansible.builtin.command: "{{ tempfile.path }}/NVIDIA-Linux-x86_64-{{ pve_nvidia_passthrough_driver_version }}.run {{ pve_nvidia_passthrough_driver_install_opts }}"
   args:
     creates: /usr/lib/firmware/nvidia/{{ pve_nvidia_passthrough_driver_version }}
   notify:

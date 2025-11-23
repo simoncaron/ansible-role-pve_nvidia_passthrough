@@ -1,8 +1,7 @@
 ---
-- name: Install and Configure NVIDIA Drivers on Host
-  ansible.builtin.import_tasks: host_install.yml
-  when: pve_nvidia_passthrough_install_mode == 'host'
+- name: Install and Configure NVIDIA Drivers
+  ansible.builtin.import_tasks: driver_install.yml
 
-- name: Install and Configure NVIDIA Drivers on Guest
-  ansible.builtin.import_tasks: guest_install.yml
-  when: pve_nvidia_passthrough_install_mode == 'guest'
+- name: Install nvidia-container-toolkit
+  ansible.builtin.import_tasks: container_runtime.yml
+  when: pve_nvidia_passthrough_install_container_runtime

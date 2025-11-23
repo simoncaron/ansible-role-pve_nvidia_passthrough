@@ -20,20 +20,44 @@ Role Variables
 Available variables are listed below, along with default values (see `defaults/main.yml`):
 
     pve_nvidia_passthrough_driver_version: ""
+    pve_nvidia_passthrough_driver_install_opts: --dkms -s
     pve_nvidia_passthrough_initramfs_update_options: -k all -u
+    pve_nvidia_passthrough_install_container_runtime: true
 
 The value `pve_nvidia_passthrough_driver_version` is required and should contain the desired driver version. You can use the official wizard to identify the latest version available for your GPU: https://www.nvidia.com/Download/index.aspx.
 
+The key `pve_nvidia_passthrough_driver_install_opts` allows to configure the options passed to the NVIDIA driver installer.
+
 The key `pve_nvidia_passthrough_initramfs_update_options` allows to configure the options of the initramfs command when modules are added.
 
-By default, the role installs/configures the driver for the Proxmox Host. To configure the driver for an LXC guest, the key `pve_nvidia_passthrough_install_mode` should be set to `guest`.
+The key `pve_nvidia_passthrough_install_container_runtime` controls whether to install and configure the NVIDIA Container Toolkit for Docker/container support (default: true).
 
 Dependencies
 ------------
 
-Before running the role on LXC guests, you will need to set the appropriate lxc flags in your container .conf file.
+None.
 
-Example, for the following entries in `/dev`:
+Using NVIDIA GPUs in LXC Containers
+------------------------------------
+
+To use NVIDIA GPUs in LXC containers, you have two options for configuring device access:
+
+### Option 1: Automatic Injection (Recommended)
+
+Add the following lines to your LXC container .conf file (in `/etc/pve/lxc/<id>.conf`):
+
+```
+lxc.environment: NVIDIA_VISIBLE_DEVICES=all
+lxc.environment: NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
+lxc.hook.mount: /usr/share/lxc/hooks/nvidia
+```
+
+This method automatically injects the NVIDIA devices and drivers into the container at mount time using the NVIDIA Container Toolkit hook. The environment variables configure which GPUs are visible (`all` or specific GPU IDs) and what capabilities are enabled (compute, utility, video, graphics, etc.).
+
+### Option 2: Manual Device Passthrough
+
+Alternatively, you can manually bind mount the NVIDIA devices. First, check the device entries on your host:
+
 ```
 root@pve01:/etc/pve/lxc# ls -l /dev/nvidia*
 crw-rw-rw- 1 root root 195,   0 Feb 13 21:15 /dev/nvidia0
@@ -43,7 +67,8 @@ crw-rw-rw- 1 root root 511,   0 Feb 13 21:15 /dev/nvidia-uvm
 crw-rw-rw- 1 root root 511,   1 Feb 13 21:15 /dev/nvidia-uvm-tools
 ```
 
-You must add the following lines to the LXC guest .conf file (in /etc/pve/lxc/<id>.conf)
+Then add the following lines to the LXC guest .conf file (in `/etc/pve/lxc/<id>.conf`):
+
 ```
 lxc.cgroup2.devices.allow: c 195:* rwm
 lxc.cgroup2.devices.allow: c 508:* rwm
@@ -55,11 +80,12 @@ lxc.mount.entry: dev/nvidia-modeset dev/nvidia-modeset none bind,optional,create
 lxc.mount.entry: /dev/nvidia-modeset dev/nvidia-modeset none bind,optional,create=file
 ```
 
-After the lines are added, you must reboot the LXC. You can run this role with `pve_nvidia_passthrough_install_mode` set to `guest` to configure the guest.
+After adding the configuration lines, you must reboot the LXC container.
 
 See these resources for additional information:
 - https://jocke.no/2022/02/23/plex-gpu-transcoding-in-docker-on-lxc-on-proxmox/
 - https://theorangeone.net/posts/lxc-nvidia-gpu-passthrough/
+- https://gist.github.com/kuanghan/1cf09e25c4a67d92d5e7b1804403f052?permalink_comment_id=5212453#gistcomment-5212453
 
 Example Playbook
 ----------------

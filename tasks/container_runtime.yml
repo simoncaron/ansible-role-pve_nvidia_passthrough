@@ -1,0 +1,26 @@
+---
+- name: Check required packages are installed
+  ansible.builtin.package:
+    name:
+      - gnupg2
+      - curl
+    state: present
+
+- name: Add NVIDIA Container Toolkit GPG key
+  ansible.builtin.shell:
+    cmd: curl -fsSL {{ pve_nvidia_passthrough_libnvidia_apt_gpg_key }} | gpg --dearmor -o {{ pve_nvidia_passthrough_libnvidia_apt_gpg_keyring_path }}
+    creates: "{{ pve_nvidia_passthrough_libnvidia_apt_gpg_keyring_path }}"
+
+- name: Add NVIDIA Container Toolkit repository
+  ansible.builtin.shell:
+    cmd: |
+      curl -s -L {{ pve_nvidia_passthrough_libnvidia_list_file }} | \
+      sed 's#deb https://#deb [signed-by={{ pve_nvidia_passthrough_libnvidia_apt_gpg_keyring_path }}] https://#g' | \
+      tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+    creates: /etc/apt/sources.list.d/nvidia-container-toolkit.list
+
+- name: Install nvidia-container-toolkit package
+  ansible.builtin.package:
+    name: nvidia-container-toolkit
+    state: present
+    update_cache: true
